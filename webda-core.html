@@ -1,0 +1,123 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+
+<dom-module id="webda-core">
+  <template>
+    <iron-ajax id="ajax" handle-as="json" content-type="application/json" with-credentials="true"></iron-ajax>
+    <iron-ajax id="ajaxAnon" handle-as="json" content-type="application/json"></iron-ajax>
+  </template>
+<script>
+  /*jslint browser: true*/
+  var WebdaController = function() {
+    
+  };
+
+  WebdaController.prototype.setUrl = function(url) {
+    if (this._url !== undefined && url === undefined) {
+      return;
+    }
+    if (url === undefined && window.app) {
+      url = window.app.baseUrl;
+    }
+    if (url === undefined) {
+      return;
+    }
+    if (url.length > 2) {
+      if (url.substr(url.length - 1, 1) !== '/') {
+        url = url + '/';
+      }
+    }
+    this._url = url;
+  };
+
+  WebdaController.prototype.logout = function(url) {
+    if (url === undefined) {
+      url = "auth";
+    }
+    Webda.ajax.method = 'DELETE';
+    Webda.ajax.url = Webda.url(url);
+    return Webda.ajax.generateRequest().completes.then(function() {
+      this.dispatchEvent(new CustomEvent('Webda.Logout', { bubbles: true, composed: true }));
+    });
+  };
+
+  WebdaController.prototype.request = function(page, method, body) {
+    Webda.ajax.method = method || 'GET';
+    Webda.ajax.url = Webda.url(page);
+    Webda.ajax.body = body;
+    return Webda.ajax.generateRequest().completes;
+  }
+  WebdaController.prototype.url = function(page) {
+    return this._url + page;
+  };
+
+  WebdaController.prototype.me = function() {
+    Webda.ajax.url = Webda.url('auth/me');
+    Webda.ajax.method = 'GET';
+    return Webda.ajax.generateRequest().completes;
+  }
+
+  window.Webda = window.Webda || new WebdaController();
+  Webda.Mixins = {};
+  </script>
+  <script>
+    /**
+     * `webda-core`
+     * Core functionality of Webda
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class WebdaCore extends Polymer.Element {
+      static get is() { return 'webda-core'; }
+      static get properties() {
+        return {
+          url: {
+            type: String,
+            observer: '_setUrl'
+          },
+          /**
+           * Try to retrieve the user for you
+           *
+           * Will call url/auth/me
+           */
+          autoMe: {
+            type: Object,
+            notify: true
+          },
+          noDev: {
+            type: Boolean
+          }
+        };
+      }
+      ready() {
+        super.ready();
+        Webda.ajax = this.$.ajax;
+        Webda.ajaxAnon = this.$.ajaxAnon;
+        Webda.setUrl(this.url);
+        this.dispatchEvent(new CustomEvent('Webda.Ready', { bubbles: true, composed: true }));
+        if (this.autoMe) {
+          Webda.me().then( function(req) {
+            let user = req.response;
+            Webda.user = user;
+            this.autoMe = user;
+            this.dispatchEvent(new CustomEvent('Webda.AutoLogin', { detail: user, bubbles: true, composed: true }));
+          }.bind(this));
+        }
+        if (!this.noDev && document.location.hostname === 'localhost' || document.location.hostname === '127.0.0.1') {
+          Webda.setUrl('http://localhost:18080');
+        }
+      }
+      _setUrl(url) {
+        if (!this.noDev && document.location.hostname === 'localhost' || document.location.hostname === '127.0.0.1') {
+          console.log('Dev mode will not use', url, 'but http://localhost:18080 instead');
+          return;
+        }
+        Webda.setUrl(this.url);
+      }
+    }
+
+    window.customElements.define(WebdaCore.is, WebdaCore);
+  </script>
+</dom-module>

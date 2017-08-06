@@ -30,6 +30,9 @@ Webda.Mixins.Store = Polymer.dedupingMixin((superClass) =>
          */
         store: {
           type: String
+        },
+        onError: {
+          type: Object
         }
       };
     }
@@ -52,11 +55,17 @@ Webda.Mixins.Store = Polymer.dedupingMixin((superClass) =>
       }
       Webda.ajax.contentType = 'application/json';
       Webda.ajax.body = this.model;
-      return Webda.ajax.generateRequest().completes.then((req) => {
+      promise = Webda.ajax.generateRequest().completes.then((req) => {
         this.model = req.response;
         this.dispatchEvent(new CustomEvent(event, { detail: this.model, bubbles: true, composed: true }));
         return Promise.resolve(this.model);
       });
+      if (this.onError && typeof(this.onError) === 'function') {
+        promise.catch( (err) => {
+          this.onError(err);
+        });
+      }
+      return promise;
     }
 
     ready() {

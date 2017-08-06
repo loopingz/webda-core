@@ -94,16 +94,16 @@
         Webda.ajaxAnon = this.$.ajaxAnon;
         Webda.setUrl(this.url);
         this.dispatchEvent(new CustomEvent('Webda.Ready', { bubbles: true, composed: true }));
-        if (this.autoMe) {
+	if (!this.noDev && document.location.hostname === 'localhost' || document.location.hostname === '127.0.0.1') {
+	  Webda.setUrl('http://localhost:18080');
+	}
+	if (this.autoMe) {
           Webda.me().then( function(req) {
             let user = req.response;
             Webda.user = user;
             this.autoMe = user;
             this.dispatchEvent(new CustomEvent('Webda.AutoLogin', { detail: user, bubbles: true, composed: true }));
           }.bind(this));
-        }
-        if (!this.noDev && document.location.hostname === 'localhost' || document.location.hostname === '127.0.0.1') {
-          Webda.setUrl('http://localhost:18080');
         }
       }
       _setUrl(url) {

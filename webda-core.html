@@ -3,8 +3,8 @@
 
 <dom-module id="webda-core">
   <template>
-    <iron-ajax id="ajax" handle-as="json" content-type="application/json" with-credentials="true"></iron-ajax>
-    <iron-ajax id="ajaxAnon" handle-as="json" content-type="application/json"></iron-ajax>
+    <iron-ajax id="ajax" handle-as="json" content-type="application/json" with-credentials reject-with-request></iron-ajax>
+    <iron-ajax id="ajaxAnon" handle-as="json" content-type="application/json" reject-with-request></iron-ajax>
   </template>
 <script>
   /*jslint browser: true*/

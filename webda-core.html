@@ -55,7 +55,13 @@
   WebdaController.prototype.me = function() {
     Webda.ajax.url = Webda.url('auth/me');
     Webda.ajax.method = 'GET';
-    return Webda.ajax.generateRequest().completes;
+    return Webda.ajax.generateRequest().completes.catch( (err) => {
+      if (err.request && err.request.xhr && err.request.xhr.status === 404) {
+        // We swallow this error
+        return Promise.resolve();
+      }
+      return Promise.reject(err);
+    });
   }
 
   window.Webda = window.Webda || new WebdaController();
@@ -98,16 +104,19 @@
         Webda.ajaxAnon = this.$.ajaxAnon;
         Webda.setUrl(this.url);
         this.dispatchEvent(new CustomEvent('Webda.Ready', { bubbles: true, composed: true }));
-	if (!this.noDev && document.location.hostname === 'localhost' || document.location.hostname === '127.0.0.1') {
-	  Webda.setUrl('http://localhost:18080');
-	}
-	if (this.autoMe) {
-          Webda.me().then( function(req) {
+        if (!this.noDev && document.location.hostname === 'localhost' || document.location.hostname === '127.0.0.1') {
+          Webda.setUrl('http://localhost:18080');
+        }
+        if (this.autoMe) {
+          Webda.me().then( (req) => {
+            if (!req) {
+              return;
+            }
             let user = req.response;
             Webda.user = user;
             this.autoMe = user;
             this.dispatchEvent(new CustomEvent('Webda.AutoLogin', { detail: user, bubbles: true, composed: true }));
-          }.bind(this));
+          });
         }
       }
       _setUrl(url) {

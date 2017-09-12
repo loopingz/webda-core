@@ -33,6 +33,7 @@
     }
     Webda.ajax.method = 'DELETE';
     Webda.ajax.url = Webda.url(url);
+    Webda.ajax.body = undefined;
     return Webda.ajax.generateRequest().completes.then(function() {
       this.dispatchEvent(new CustomEvent('Webda.Logout', { bubbles: true, composed: true }));
     });

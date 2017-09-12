@@ -76,7 +76,6 @@ Webda.Mixins.Store = Polymer.dedupingMixin((superClass) =>
      * Retrieve the object from the server based on the uuid
      */
     get() {
-      console.log('get');
       if (this.store === undefined || this.uuid === undefined || this._promise) return;
       Webda.ajax.method = 'GET';
       Webda.ajax.url = Webda.url(this.store.toLowerCase() + '/' + this.uuid);

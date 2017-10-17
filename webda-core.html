@@ -95,6 +95,10 @@
           },
           noDev: {
             type: Boolean
+          },
+          devMode: {
+            type: Boolean,
+            notify: true
           }
         };
       }
@@ -106,6 +110,9 @@
         this.dispatchEvent(new CustomEvent('Webda.Ready', { bubbles: true, composed: true }));
         if (!this.noDev && document.location.hostname === 'localhost' || document.location.hostname === '127.0.0.1') {
           Webda.setUrl('http://localhost:18080');
+          this.devMode = true;
+        } else {
+          this.devMode = false;
         }
         if (this.autoMe) {
           Webda.me().then( (req) => {
